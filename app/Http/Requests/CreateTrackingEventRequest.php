@@ -27,3 +27,4 @@ class CreateTrackingEventRequest extends FormRequest
         ];
     }
 }
+

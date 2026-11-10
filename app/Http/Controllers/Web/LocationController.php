@@ -40,3 +40,4 @@ class LocationController extends Controller
         return back()->with('success', 'Hub location registered.');
     }
 }
+

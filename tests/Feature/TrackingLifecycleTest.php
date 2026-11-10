@@ -120,3 +120,4 @@ class TrackingLifecycleTest extends TestCase
         $this->assertDatabaseHas('tracking_events', ['id' => $event2->id]);
     }
 }
+

@@ -34,3 +34,4 @@ class EnsureUserRole
         return $next($request);
     }
 }
+

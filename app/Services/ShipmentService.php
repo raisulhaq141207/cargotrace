@@ -194,3 +194,4 @@ class ShipmentService
         return (bool) $shipment->delete();
     }
 }
+

@@ -38,3 +38,4 @@ class AuditLog extends Model
         return $this->belongsTo(User::class);
     }
 }
+

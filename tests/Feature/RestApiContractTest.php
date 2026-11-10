@@ -132,3 +132,4 @@ class RestApiContractTest extends TestCase
             ->assertJsonPath('success', true);
     }
 }
+

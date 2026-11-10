@@ -32,3 +32,4 @@ class LocationPolicy
         return $user->isAdmin();
     }
 }
+

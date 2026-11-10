@@ -134,3 +134,4 @@ class Shipment extends Model
         return in_array($targetStatus, $allowed, true);
     }
 }
+

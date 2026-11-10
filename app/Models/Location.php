@@ -46,3 +46,4 @@ class Location extends Model
         return $this->hasMany(TrackingEvent::class);
     }
 }
+

@@ -176,3 +176,4 @@ class ShipmentTest extends TestCase
             ->assertJsonValidationErrors(['weight', 'expected_arrival']);
     }
 }
+

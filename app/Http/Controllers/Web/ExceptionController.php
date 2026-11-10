@@ -31,3 +31,4 @@ class ExceptionController extends Controller
         return back()->with('success', 'Operational exception marked as RESOLVED.');
     }
 }
+

@@ -23,3 +23,4 @@ class CreateExceptionRequest extends FormRequest
         ];
     }
 }
+

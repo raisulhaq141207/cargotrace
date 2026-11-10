@@ -34,3 +34,4 @@ class ShipmentItem extends Model
         return $this->belongsTo(Shipment::class);
     }
 }
+

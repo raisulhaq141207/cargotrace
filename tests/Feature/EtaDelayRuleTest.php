@@ -89,3 +89,4 @@ class EtaDelayRuleTest extends TestCase
         $this->assertStringContainsString('delayed by 32.0 hours', $eval['delay_reason']);
     }
 }
+

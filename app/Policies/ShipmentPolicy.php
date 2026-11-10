@@ -75,3 +75,4 @@ class ShipmentPolicy
         return $user->isAdmin() || $user->isOperator();
     }
 }
+

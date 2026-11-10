@@ -37,3 +37,4 @@ class CreateShipmentRequest extends FormRequest
         ];
     }
 }
+
