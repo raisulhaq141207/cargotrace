@@ -148,11 +148,17 @@
             </div>
         </div>
 
-        <!-- Widget 3: Shipment Map (Interactive Leaflet Map with A, B, C Waypoints) -->
+        <!-- Widget 3: Shipment Map (Interactive Leaflet Map with World View) -->
         <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm lg:col-span-3 flex flex-col justify-between">
-            <div class="mb-3">
-                <h3 class="text-sm font-bold text-slate-900">Shipment Map</h3>
-                <p class="text-[11px] text-slate-400">Real-time shipment routes and locations</p>
+            <div class="flex items-start justify-between mb-2">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-900">Shipment Map</h3>
+                    <p class="text-[11px] text-slate-400">Real-time global routes &amp; locations</p>
+                </div>
+                <a href="{{ route('tracking.index') }}" class="text-[11px] font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1">
+                    <span>World Map</span>
+                    <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                </a>
             </div>
 
             <!-- Mini Map Canvas -->
@@ -382,57 +388,66 @@
         });
 
         // ─────────────────────────────────────────────────────────────────
-        // 3. Mini Leaflet Map with Waypoints (A, B, C)
+        // 3. Mini Leaflet World Map with Real Shipments & Waypoints
         // ─────────────────────────────────────────────────────────────────
+        const mapShipments = {!! json_encode($mapShipments) !!};
+
         const miniMap = L.map('shipmentMiniMap', {
             zoomControl: false,
             attributionControl: false
-        }).setView([15.0, 70.0], 2);
+        }).setView([20.0, 40.0], 1.5); // Global World Centering
 
-        // OpenStreetMap Tile Layer
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        // CartoDB / OSM Global Tile Layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
             maxZoom: 18,
+            subdomains: 'abcd'
         }).addTo(miniMap);
 
         // Zoom control in bottom right
         L.control.zoom({ position: 'bottomright' }).addTo(miniMap);
 
-        // Waypoints matching the visual style in the mockup:
-        // A: Green origin marker
-        // B: Blue transit marker
-        // C: Orange destination marker
-        const waypoints = [
-            { label: 'A', name: 'Origin Port (Jakarta)', lat: -6.10, lng: 106.88, color: '#10b981' },
-            { label: 'B', name: 'In Transit (Singapore Strait)', lat: 1.25, lng: 103.85, color: '#0284c7' },
-            { label: 'C', name: 'Destination Port (Rotterdam)', lat: 51.95, lng: 4.13, color: '#f97316' }
-        ];
+        // Render actual active world shipments
+        const allBounds = [];
 
-        const latLngs = [];
-        waypoints.forEach(wp => {
-            latLngs.push([wp.lat, wp.lng]);
+        mapShipments.forEach(s => {
+            if (!s.origin_lat || !s.dest_lat) return;
 
-            // Custom HTML divIcon with label A, B, C
-            const icon = L.divIcon({
-                className: 'custom-map-pin',
-                html: `<div style="background-color:${wp.color}; width:22px; height:22px; border-radius:50%; border:2px solid #ffffff; box-shadow:0 2px 4px rgba(0,0,0,0.2); color:#ffffff; font-weight:bold; font-size:11px; display:flex; align-items:center; justify-content:center;">${wp.label}</div>`,
-                iconSize: [22, 22],
-                iconAnchor: [11, 11]
+            // Route line between Origin & Destination
+            const routeLine = [
+                [s.origin_lat, s.origin_lng],
+                [s.current_lat, s.current_lng],
+                [s.dest_lat, s.dest_lng]
+            ];
+            allBounds.push([s.origin_lat, s.origin_lng]);
+            allBounds.push([s.dest_lat, s.dest_lng]);
+
+            L.polyline(routeLine, {
+                color: s.is_delayed ? '#ef4444' : '#0284c7',
+                weight: 2,
+                opacity: 0.7,
+                dashArray: '4, 5'
+            }).addTo(miniMap);
+
+            // Vessel Marker (B)
+            const bIcon = L.divIcon({
+                className: 'mini-map-pin',
+                html: `<div style="background-color:${s.is_delayed ? '#ef4444' : '#0284c7'}; width:18px; height:18px; border-radius:50%; border:2px solid #ffffff; box-shadow:0 1px 3px rgba(0,0,0,0.3); color:#ffffff; font-weight:bold; font-size:9px; display:flex; align-items:center; justify-content:center;">B</div>`,
+                iconSize: [18, 18],
+                iconAnchor: [9, 9]
             });
 
-            L.marker([wp.lat, wp.lng], { icon: icon })
-                .bindPopup(`<b>Checkpoint ${wp.label}</b><br><small>${wp.name}</small>`)
+            L.marker([s.current_lat, s.current_lng], { icon: bIcon })
+                .bindPopup(`<b>#${s.shipment_number}</b><br><small>${s.carrier || ''}</small><br><a href="${s.show_url}" style="color:#0284c7;font-weight:bold;">Track &rarr;</a>`)
                 .addTo(miniMap);
         });
 
-        // Draw connecting route polyline
-        const routeLine = L.polyline(latLngs, {
-            color: '#0284c7',
-            weight: 3,
-            opacity: 0.8,
-            dashArray: '5, 6'
-        }).addTo(miniMap);
-
-        miniMap.fitBounds(routeLine.getBounds(), { padding: [20, 20] });
+        // Always show primary global corridor if bounds found
+        if (allBounds.length > 0) {
+            miniMap.fitBounds(allBounds, { padding: [15, 15] });
+        } else {
+            // Default world coordinates (Jakarta to Rotterdam)
+            miniMap.setView([15.0, 60.0], 2);
+        }
 
         // ─────────────────────────────────────────────────────────────────
         // 4. Real-time Live Polling Engine (Every 5 seconds)

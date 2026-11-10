@@ -7,3 +7,4 @@ echo   Press Ctrl+C to stop the server.
 echo ======================================================================
 "C:\xampp\php\php.exe" -c ".\php.ini" artisan serve
 pause
+

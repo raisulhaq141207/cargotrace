@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Shipments Directory')
+@section('header_title', 'Shipments')
 
 @section('content')
 <div class="space-y-6">

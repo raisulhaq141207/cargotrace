@@ -8,3 +8,4 @@ echo   Press Ctrl+C to stop the simulator.
 echo ======================================================================
 "C:\xampp\php\php.exe" -c ".\php.ini" artisan cargotrace:simulate --loop=10
 pause
+

@@ -79,12 +79,37 @@ class DashboardController extends Controller
             }
         }
 
-        // Map Waypoints & Routes for Dashboard Map widget
+        // Map Waypoints & Routes for Dashboard Map widget (Global World View)
         $mapShipments = (clone $baseQuery)
-            ->with(['origin', 'destination', 'latestTrackingEvent', 'carrier'])
-            ->whereIn('current_status', [Shipment::STATUS_IN_TRANSIT, Shipment::STATUS_PICKED_UP, Shipment::STATUS_BOOKED])
-            ->take(5)
-            ->get();
+            ->with(['origin', 'destination', 'carrier', 'customer', 'trackingEvents' => fn($q) => $q->latest('event_time')])
+            ->whereIn('current_status', [Shipment::STATUS_IN_TRANSIT, Shipment::STATUS_PICKED_UP, Shipment::STATUS_BOOKED, Shipment::STATUS_CREATED])
+            ->take(8)
+            ->get()
+            ->map(function ($s) {
+                $latestEvent = $s->trackingEvents->first();
+                $curLat = $latestEvent?->latitude ?? (($s->origin?->latitude + $s->destination?->latitude) / 2);
+                $curLng = $latestEvent?->longitude ?? (($s->origin?->longitude + $s->destination?->longitude) / 2);
+
+                return [
+                    'id'               => $s->id,
+                    'shipment_number'  => $s->shipment_number,
+                    'customer'         => $s->customer?->name,
+                    'carrier'          => $s->carrier?->name,
+                    'status'           => $s->current_status,
+                    'is_delayed'       => $s->is_delayed,
+                    'origin_code'      => $s->origin?->code,
+                    'origin_city'      => $s->origin?->city,
+                    'origin_lat'       => $s->origin?->latitude,
+                    'origin_lng'       => $s->origin?->longitude,
+                    'dest_code'        => $s->destination?->code,
+                    'dest_city'        => $s->destination?->city,
+                    'dest_lat'         => $s->destination?->latitude,
+                    'dest_lng'         => $s->destination?->longitude,
+                    'current_lat'      => (float) $curLat,
+                    'current_lng'      => (float) $curLng,
+                    'show_url'         => route('shipments.show', $s->id),
+                ];
+            });
 
         // Recent shipments table
         $recentShipments = (clone $baseQuery)

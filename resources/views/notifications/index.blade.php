@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Notifications')
+@section('header_title', 'Notifications')
 
 @section('content')
 <div class="max-w-3xl mx-auto space-y-6">

@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Security & Audit Logs')
+@section('header_title', 'Audit Logs')
 
 @section('content')
 <div class="space-y-6">

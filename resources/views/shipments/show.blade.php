@@ -1,6 +1,7 @@
 @extends('layouts.app')
 
 @section('title', 'Shipment #' . $shipment->shipment_number)
+@section('header_title', 'Tracking Details')
 
 @section('content')
 <div class="space-y-6">

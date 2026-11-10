@@ -49,7 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/shipments/{shipment}', [ShipmentController::class, 'destroy'])->name('shipments.destroy');
 
     // Sidebar navigation shortcuts matching mockup
-    Route::get('/tracking', fn() => redirect()->route('shipments.index'))->name('tracking.index');
+    Route::get('/tracking', [TrackingController::class, 'map'])->name('tracking.index');
     Route::get('/exceptions', fn() => redirect()->route('shipments.index'))->name('exceptions.index');
     Route::get('/reports', [DashboardController::class, 'index'])->name('reports.index');
 
