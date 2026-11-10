@@ -127,3 +127,4 @@ class RealtimeLiveFeedTest extends TestCase
         $response->assertUnauthorized();
     }
 }
+

@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Carrier;
 use App\Models\Shipment;
 use App\Models\ShipmentException;
+use App\Models\TrackingEvent;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class DashboardController extends Controller
 {
@@ -22,11 +24,21 @@ class DashboardController extends Controller
             $baseQuery->where('customer_id', $user->id);
         }
 
-        // Summary stats
-        $totalShipments = (clone $baseQuery)->count();
-        $inTransitCount = (clone $baseQuery)->where('current_status', Shipment::STATUS_IN_TRANSIT)->count();
-        $deliveredCount = (clone $baseQuery)->where('current_status', Shipment::STATUS_DELIVERED)->count();
-        $delayedCount = (clone $baseQuery)->where('is_delayed', true)->count();
+        // Search in recent shipments if query present
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $baseQuery->where(function ($q) use ($search) {
+                $q->where('shipment_number', 'like', "%{$search}%")
+                  ->orWhereHas('customer', fn($c) => $c->where('name', 'like', "%{$search}%"))
+                  ->orWhereHas('carrier', fn($c) => $c->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        // Summary stats (matching the 5 KPI cards in mockup)
+        $totalShipments      = (clone $baseQuery)->count();
+        $inTransitCount      = (clone $baseQuery)->where('current_status', Shipment::STATUS_IN_TRANSIT)->count();
+        $deliveredCount      = (clone $baseQuery)->where('current_status', Shipment::STATUS_DELIVERED)->count();
+        $delayedCount        = (clone $baseQuery)->where('is_delayed', true)->count();
 
         // Exceptions query
         $exceptionsQuery = ShipmentException::query();
@@ -35,41 +47,50 @@ class DashboardController extends Controller
         }
         $openExceptionsCount = (clone $exceptionsQuery)->whereIn('status', ['OPEN', 'INVESTIGATING'])->count();
 
-        // Rates
+        // Delay rate
         $delayRate = $totalShipments > 0 ? round(($delayedCount / $totalShipments) * 100, 1) : 0;
-        $exceptionRate = $totalShipments > 0 ? round(($openExceptionsCount / $totalShipments) * 100, 1) : 0;
 
-        // Shipments by Status for Chart.js
-        $statusCounts = (clone $baseQuery)
-            ->select('current_status', DB::raw('count(*) as count'))
-            ->groupBy('current_status')
-            ->pluck('count', 'current_status')
-            ->toArray();
+        // Carrier distribution for "Delay Rate by Carrier" Donut Chart
+        $carrierStats = Carrier::where('is_active', true)
+            ->withCount(['shipments' => function ($q) use ($user) {
+                if ($user->isCustomer()) $q->where('customer_id', $user->id);
+            }])
+            ->withCount(['shipments as delayed_shipments_count' => function ($q) use ($user) {
+                $q->where('is_delayed', true);
+                if ($user->isCustomer()) $q->where('customer_id', $user->id);
+            }])
+            ->get();
 
-        // Shipments by Carrier for Chart.js
-        $carrierCounts = (clone $baseQuery)
-            ->join('carriers', 'shipments.carrier_id', '=', 'carriers.id')
-            ->select('carriers.name as carrier_name', DB::raw('count(shipments.id) as count'))
-            ->groupBy('carriers.name')
-            ->orderByDesc('count')
-            ->take(6)
-            ->pluck('count', 'carrier_name')
-            ->toArray();
+        $totalActiveVolume = $carrierStats->sum('shipments_count');
+        $carrierChartData = [];
+        $carrierColors = ['#0284c7', '#f97316', '#64748b', '#10b981', '#8b5cf6'];
+        $idx = 0;
 
-        // Recent shipments
+        foreach ($carrierStats as $c) {
+            if ($c->shipments_count > 0 || $totalActiveVolume === 0) {
+                $pct = $totalActiveVolume > 0 ? round(($c->shipments_count / $totalActiveVolume) * 100) : 20;
+                $carrierChartData[] = [
+                    'name'       => $c->name,
+                    'count'      => $c->shipments_count,
+                    'percentage' => $pct,
+                    'color'      => $carrierColors[$idx % count($carrierColors)],
+                ];
+                $idx++;
+            }
+        }
+
+        // Map Waypoints & Routes for Dashboard Map widget
+        $mapShipments = (clone $baseQuery)
+            ->with(['origin', 'destination', 'latestTrackingEvent', 'carrier'])
+            ->whereIn('current_status', [Shipment::STATUS_IN_TRANSIT, Shipment::STATUS_PICKED_UP, Shipment::STATUS_BOOKED])
+            ->take(5)
+            ->get();
+
+        // Recent shipments table
         $recentShipments = (clone $baseQuery)
             ->with(['carrier', 'origin', 'destination', 'customer'])
             ->latest()
-            ->take(6)
-            ->get();
-
-        // Critical open exceptions
-        $recentExceptions = (clone $exceptionsQuery)
-            ->with('shipment')
-            ->whereIn('status', ['OPEN', 'INVESTIGATING'])
-            ->orderByRaw("CASE severity WHEN 'CRITICAL' THEN 1 WHEN 'HIGH' THEN 2 WHEN 'MEDIUM' THEN 3 ELSE 4 END")
-            ->latest('detected_at')
-            ->take(5)
+            ->take(8)
             ->get();
 
         return view('dashboard.index', compact(
@@ -79,12 +100,65 @@ class DashboardController extends Controller
             'delayedCount',
             'openExceptionsCount',
             'delayRate',
-            'exceptionRate',
-            'statusCounts',
-            'carrierCounts',
-            'recentShipments',
-            'recentExceptions'
+            'carrierChartData',
+            'mapShipments',
+            'recentShipments'
         ));
     }
-}
 
+    /**
+     * Export shipments to CSV (Export button on mockup)
+     */
+    public function exportCsv(Request $request): StreamedResponse
+    {
+        $user = Auth::user();
+        $query = Shipment::with(['customer', 'carrier', 'origin', 'destination']);
+        if ($user->isCustomer()) {
+            $query->where('customer_id', $user->id);
+        }
+
+        $shipments = $query->latest()->get();
+
+        $filename = 'cargotrace_shipments_' . date('Y-m-d_His') . '.csv';
+
+        return response()->streamDownload(function () use ($shipments) {
+            $handle = fopen('php://output', 'w');
+            fputcsv($handle, [
+                'Shipment Number',
+                'Customer',
+                'Carrier',
+                'Origin Hub',
+                'Destination Port',
+                'Cargo Type',
+                'Weight (kg)',
+                'Status',
+                'Is Delayed',
+                'Delay Hours',
+                'Expected Arrival',
+                'Estimated Arrival',
+            ]);
+
+            foreach ($shipments as $s) {
+                fputcsv($handle, [
+                    $s->shipment_number,
+                    $s->customer?->name,
+                    $s->carrier?->name,
+                    $s->origin?->city . ' (' . $s->origin?->code . ')',
+                    $s->destination?->city . ' (' . $s->destination?->code . ')',
+                    $s->cargo_type,
+                    $s->weight,
+                    $s->current_status,
+                    $s->is_delayed ? 'YES' : 'NO',
+                    $s->delay_duration_minutes ? round($s->delay_duration_minutes / 60, 1) : 0,
+                    $s->expected_arrival?->toIso8601String(),
+                    $s->estimated_arrival?->toIso8601String(),
+                ]);
+            }
+
+            fclose($handle);
+        }, $filename, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => "attachment; filename=\"{$filename}\"",
+        ]);
+    }
+}

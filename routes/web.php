@@ -38,6 +38,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Shipments
+    Route::get('/shipments/export', [DashboardController::class, 'exportCsv'])->name('shipments.export');
     Route::get('/shipments', [ShipmentController::class, 'index'])->name('shipments.index');
     Route::get('/shipments/create', [ShipmentController::class, 'create'])->name('shipments.create');
     Route::post('/shipments', [ShipmentController::class, 'store'])->name('shipments.store');
@@ -46,6 +47,11 @@ Route::middleware('auth')->group(function () {
     Route::match(['put', 'patch'], '/shipments/{shipment}', [ShipmentController::class, 'update'])->name('shipments.update');
     Route::post('/shipments/{shipment}/transition', [ShipmentController::class, 'transition'])->name('shipments.transition');
     Route::delete('/shipments/{shipment}', [ShipmentController::class, 'destroy'])->name('shipments.destroy');
+
+    // Sidebar navigation shortcuts matching mockup
+    Route::get('/tracking', fn() => redirect()->route('shipments.index'))->name('tracking.index');
+    Route::get('/exceptions', fn() => redirect()->route('shipments.index'))->name('exceptions.index');
+    Route::get('/reports', [DashboardController::class, 'index'])->name('reports.index');
 
     // Tracking Events
     Route::post('/shipments/{shipment}/tracking', [TrackingController::class, 'store'])->name('shipments.tracking.store');
