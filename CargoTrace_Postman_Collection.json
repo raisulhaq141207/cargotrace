@@ -1,0 +1,484 @@
+{
+	"info": {
+		"_postman_id": "cargotrace-api-v1",
+		"name": "CargoTrace Global Shipment Visibility API",
+		"description": "Comprehensive Postman collection for CargoTrace REST API (UAS Web Programming 2).\nIncludes Authentication, Shipments CRUD, Tracking Timeline, Operational Exceptions, Carriers, and Hub Locations.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login (Admin / Operator / Customer)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"admin@cargotrace.com\",\n    \"password\": \"password\",\n    \"device_name\": \"Postman Client\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "login"]
+						}
+					}
+				},
+				{
+					"name": "Register Customer Account",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Pacific Ocean Trading Co.\",\n    \"email\": \"trade@pacific.example.com\",\n    \"password\": \"password123\",\n    \"password_confirmation\": \"password123\",\n    \"company\": \"Pacific Ocean Trading Co.\",\n    \"phone\": \"+62 811 999 888\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "register"]
+						}
+					}
+				},
+				{
+					"name": "Get Authenticated User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/user",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "user"]
+						}
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "logout"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Shipments",
+			"item": [
+				{
+					"name": "List Shipments (Filtered & Paginated)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/shipments?status=IN_TRANSIT&per_page=15",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shipments"],
+							"query": [
+								{
+									"key": "status",
+									"value": "IN_TRANSIT"
+								},
+								{
+									"key": "per_page",
+									"value": "15"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Shipment (Operator / Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"customer_id\": 4,\n    \"carrier_id\": 1,\n    \"origin_id\": 1,\n    \"destination_id\": 3,\n    \"cargo_type\": \"ELECTRONICS\",\n    \"weight\": 14200.5,\n    \"volume\": 38.0,\n    \"current_status\": \"CREATED\",\n    \"expected_departure\": \"2026-11-15 08:00:00\",\n    \"expected_arrival\": \"2026-11-25 18:00:00\",\n    \"notes\": \"Direct container shipment of semiconductors.\",\n    \"items\": [\n        {\n            \"description\": \"Embedded Microcontroller Modules\",\n            \"quantity\": 500,\n            \"unit\": \"CARTONS\",\n            \"weight\": 14200.5,\n            \"declared_value\": 450000,\n            \"hs_code\": \"8542.31.00\"\n        }\n    ]\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/shipments",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shipments"]
+						}
+					}
+				},
+				{
+					"name": "Get Shipment Detail",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shipments", "{{shipmentId}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Shipment",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"notes\": \"Updated carrier routing instructions via API.\",\n    \"estimated_arrival\": \"2026-11-26 12:00:00\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shipments", "{{shipmentId}}"]
+						}
+					}
+				},
+				{
+					"name": "Delete Shipment",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/shipments/{{shipmentId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shipments", "{{shipmentId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Tracking & Timeline",
+			"item": [
+				{
+					"name": "Get Shipment Tracking History",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/shipments/{{shipmentId}}/tracking",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shipments", "{{shipmentId}}", "tracking"]
+						}
+					}
+				},
+				{
+					"name": "Record Tracking Checkpoint (Operator / Admin)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"location_id\": 2,\n    \"location_name\": \"Port of Singapore Transshipment Berth\",\n    \"status\": \"IN_TRANSIT\",\n    \"event_time\": \"2026-11-12 14:30:00\",\n    \"latitude\": 1.2644,\n    \"longitude\": 103.8222,\n    \"description\": \"Container transferred onto outbound mothership.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/shipments/{{shipmentId}}/tracking",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shipments", "{{shipmentId}}", "tracking"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Operational Exceptions",
+			"item": [
+				{
+					"name": "Get Shipment Exceptions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/shipments/{{shipmentId}}/exceptions",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shipments", "{{shipmentId}}", "exceptions"]
+						}
+					}
+				},
+				{
+					"name": "Log Exception",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"exception_type\": \"CUSTOMS_HOLD\",\n    \"severity\": \"MEDIUM\",\n    \"detected_at\": \"2026-11-11 10:00:00\",\n    \"description\": \"Phytosanitary inspection document required for destination clearance.\",\n    \"delay_hours_impact\": 14\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/shipments/{{shipmentId}}/exceptions",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "shipments", "{{shipmentId}}", "exceptions"]
+						}
+					}
+				},
+				{
+					"name": "Resolve Exception",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"status\": \"RESOLVED\",\n    \"resolution_notes\": \"Verified phytosanitary certificate uploaded and cleared by customs officer.\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/exceptions/{{exceptionId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "exceptions", "{{exceptionId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Carriers & Locations",
+			"item": [
+				{
+					"name": "List Active Carriers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/carriers",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "carriers"]
+						}
+					}
+				},
+				{
+					"name": "List Hub Locations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{baseUrl}}/api/locations",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "locations"]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8000"
+		},
+		{
+			"key": "token",
+			"value": ""
+		},
+		{
+			"key": "shipmentId",
+			"value": "1"
+		},
+		{
+			"key": "exceptionId",
+			"value": "1"
+		}
+	]
+}
