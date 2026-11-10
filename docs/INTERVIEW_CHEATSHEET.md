@@ -99,3 +99,4 @@ We use **Laravel Sanctum**. When a user logs in via `POST /api/login`, Sanctum g
   vendor/bin/phpunit
   ```
   All 22 tests will execute and display green checkmarks / OK status.
+

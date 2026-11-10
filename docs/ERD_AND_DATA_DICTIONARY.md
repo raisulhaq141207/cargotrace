@@ -173,3 +173,4 @@ erDiagram
 | `ip_address` | VARCHAR(45) | Yes | NULL | Client IP address |
 | `user_agent` | TEXT | Yes | NULL | Client browser or API client agent |
 | `created_at` | TIMESTAMP | No | CURRENT | Immutable audit timestamp |
+

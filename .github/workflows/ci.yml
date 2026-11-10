@@ -50,3 +50,4 @@ jobs:
 
       - name: Execute Automated Test Suite
         run: vendor/bin/phpunit
+
