@@ -8,6 +8,7 @@ use App\Http\Controllers\Web\ExceptionController;
 use App\Http\Controllers\Web\LocationController;
 use App\Http\Controllers\Web\NotificationController;
 use App\Http\Controllers\Web\RealtimeController;
+use App\Http\Controllers\Web\ReportController;
 use App\Http\Controllers\Web\ShipmentController;
 use App\Http\Controllers\Web\TrackingController;
 use Illuminate\Support\Facades\Route;
@@ -50,8 +51,8 @@ Route::middleware('auth')->group(function () {
 
     // Sidebar navigation shortcuts matching mockup
     Route::get('/tracking', [TrackingController::class, 'map'])->name('tracking.index');
-    Route::get('/exceptions', fn() => redirect()->route('shipments.index'))->name('exceptions.index');
-    Route::get('/reports', [DashboardController::class, 'index'])->name('reports.index');
+    Route::get('/exceptions', [ExceptionController::class, 'index'])->name('exceptions.index');
+    Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
 
     // Tracking Events
     Route::post('/shipments/{shipment}/tracking', [TrackingController::class, 'store'])->name('shipments.tracking.store');
