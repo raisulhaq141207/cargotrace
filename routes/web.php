@@ -7,6 +7,7 @@ use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\ExceptionController;
 use App\Http\Controllers\Web\LocationController;
 use App\Http\Controllers\Web\NotificationController;
+use App\Http\Controllers\Web\RealtimeController;
 use App\Http\Controllers\Web\ShipmentController;
 use App\Http\Controllers\Web\TrackingController;
 use Illuminate\Support\Facades\Route;
@@ -67,4 +68,11 @@ Route::middleware('auth')->group(function () {
 
     // Audit Logs (Admin only)
     Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index')->middleware('role:admin');
+
+    // ── Real-Time Polling Endpoints ─────────────────────────────────────────
+    Route::prefix('realtime')->name('realtime.')->group(function () {
+        Route::get('/dashboard-stats',           [RealtimeController::class, 'dashboardStats'])->name('dashboard-stats');
+        Route::get('/shipment/{id}/tracking',    [RealtimeController::class, 'shipmentTracking'])->name('shipment-tracking');
+        Route::get('/live-feed',                 [RealtimeController::class, 'liveFeed'])->name('live-feed');
+    });
 });

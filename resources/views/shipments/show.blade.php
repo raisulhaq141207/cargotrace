@@ -613,6 +613,33 @@
 
             map.fitBounds(polyline.getBounds(), { padding: [40, 40] });
         }
+
+        // ─────────────────────────────────────────────────────────────────
+        // REAL-TIME AUTO-POLLING FOR SHIPMENT STATUS & EVENTS
+        // ─────────────────────────────────────────────────────────────────
+        const shipmentId = {{ $shipment->id }};
+        let lastEventCount = {{ $shipment->trackingEvents->count() }};
+
+        async function pollShipmentUpdates() {
+            try {
+                const res = await fetch(`/realtime/shipment/${shipmentId}/tracking`, {
+                    headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                if (!res.ok) return;
+                const data = await res.json();
+
+                // If new tracking events have been logged, reload page to refresh map & timeline
+                if (data.tracking_events && data.tracking_events.length > lastEventCount) {
+                    console.log('New tracking checkpoint detected, reloading view...');
+                    window.location.reload();
+                }
+            } catch (err) {
+                // Ignore transient network errors
+            }
+        }
+
+        // Poll every 8 seconds on the shipment details view
+        setInterval(pollShipmentUpdates, 8000);
     });
 </script>
 @endpush

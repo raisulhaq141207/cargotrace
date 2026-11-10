@@ -192,6 +192,23 @@ Historical tracking events are append-only. Adding a new tracking event:
 
 ---
 
+### 4. Real-Time Visibility Engine & Maritime Simulator
+CargoTrace includes a native **Real-Time Polling & Activity Stream Engine** designed to provide dynamic live tracking without requiring heavy external WebSocket brokers:
+- **AJAX Auto-Refresh**: The Operations Dashboard polls `/realtime/dashboard-stats` every 5 seconds, updating KPI metric cards, Chart.js graphs, and recent shipment tables with animated micro-transitions without full page reload.
+- **Live Activity Stream**: Tracks real-time GPS waypoint check-ins, container scans, and transit events across global sea corridors.
+- **Tracking Detail Auto-Sync**: The shipment tracking page polls `/realtime/shipment/{id}/tracking` every 8 seconds, automatically refreshing Leaflet.js waypoint markers and progress stages.
+- **Interactive Controls**: Users can pause/resume auto-refresh at any time using the dashboard live control pill.
+- **Real-Time Simulator**: Built-in Artisan CLI command simulates realistic live maritime activity:
+  ```bash
+  # Run a single simulation step
+  php artisan cargotrace:simulate
+
+  # Run continuous simulation loop every 10 seconds (ideal for live demo!)
+  php artisan cargotrace:simulate --loop=10
+  ```
+
+---
+
 ## 5. Map & External Weather API Integration
 
 ### Geospatial Mapping (Leaflet.js + OpenStreetMap)

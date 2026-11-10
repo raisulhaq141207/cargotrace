@@ -98,16 +98,23 @@
                 <!-- Right profile & actions -->
                 @auth
                 <div class="flex items-center space-x-4">
-                    <!-- Notifications button -->
-                    <a href="{{ route('notifications.index') }}" class="relative p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition">
+                    <!-- LIVE indicator -->
+                    <div class="hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30" id="live-badge" title="Real-time data active">
+                        <span class="relative flex h-2 w-2">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        <span class="text-[10px] font-bold tracking-widest text-emerald-400 uppercase">Live</span>
+                    </div>
+
+                    <!-- Notifications button (count updated via polling) -->
+                    <a href="{{ route('notifications.index') }}" class="relative p-2 rounded-lg text-slate-300 hover:text-white hover:bg-slate-800 transition" id="notif-bell">
                         <i class="fa-solid fa-bell text-base"></i>
                         @php $unreadCount = auth()->user()->unreadNotifications()->count(); @endphp
-                        @if($unreadCount > 0)
-                        <span class="absolute top-1 right-1 flex h-4 w-4">
+                        <span id="notif-badge" class="absolute top-1 right-1 flex h-4 w-4 {{ $unreadCount > 0 ? '' : 'hidden' }}">
                             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                            <span class="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-[10px] font-bold text-white items-center justify-center">{{ $unreadCount }}</span>
+                            <span id="notif-count" class="relative inline-flex rounded-full h-4 w-4 bg-red-500 text-[10px] font-bold text-white items-center justify-center">{{ $unreadCount }}</span>
                         </span>
-                        @endif
                     </a>
 
                     <!-- User Pill -->
@@ -191,6 +198,48 @@
             </div>
         </div>
     </footer>
+
+    @auth
+    <!-- Global Real-Time Notification Poller -->
+    <script>
+        (function() {
+            const notifBadge = document.getElementById('notif-badge');
+            const notifCount = document.getElementById('notif-count');
+            const liveBadge  = document.getElementById('live-badge');
+
+            async function checkNotifications() {
+                try {
+                    const res = await fetch('{{ route('realtime.dashboard-stats') }}', {
+                        headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (!res.ok) return;
+                    const data = await res.json();
+
+                    if (notifCount && notifBadge) {
+                        const count = data.unread_notifications || 0;
+                        notifCount.textContent = count;
+                        if (count > 0) {
+                            notifBadge.classList.remove('hidden');
+                        } else {
+                            notifBadge.classList.add('hidden');
+                        }
+                    }
+
+                    // Pulse live badge to show heartbeat
+                    if (liveBadge) {
+                        liveBadge.classList.add('scale-105');
+                        setTimeout(() => liveBadge.classList.remove('scale-105'), 300);
+                    }
+                } catch (e) {
+                    // silently ignore offline errors
+                }
+            }
+
+            // Poll every 10 seconds
+            setInterval(checkNotifications, 10000);
+        })();
+    </script>
+    @endauth
 
     @stack('scripts')
 </body>
