@@ -35,3 +35,4 @@ As specified in the **Web Programming 2 — Final Project Brief (Slide 04 & 18)*
    - Integrate Laravel DomPDF or Browsershot to generate downloadable multimodal shipping manifests.
 4. **WebSocket Push Notifications**:
    - Integrate Laravel Reverb or Pusher for real-time live map marker movement without page refreshes.
+

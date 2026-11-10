@@ -82,3 +82,4 @@ If demonstrating locally on an Apache server:
 - [ ] Leaflet map renders OpenStreetMap tiles with attribution.
 - [ ] Open-Meteo weather API fetches or falls back gracefully without 500 error.
 - [ ] REST API endpoints respond to Postman requests (`/api/login`, `/api/shipments`).
+
