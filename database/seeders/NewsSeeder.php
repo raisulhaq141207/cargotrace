@@ -97,3 +97,4 @@ class NewsSeeder extends Seeder
         }
     }
 }
+

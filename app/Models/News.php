@@ -72,3 +72,4 @@ class News extends Model
         return self::CATEGORIES[$this->category] ?? str_replace('_', ' ', $this->category);
     }
 }
+

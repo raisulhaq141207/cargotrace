@@ -89,5 +89,6 @@ Route::middleware('auth')->group(function () {
         Route::get('/dashboard-stats',           [RealtimeController::class, 'dashboardStats'])->name('dashboard-stats');
         Route::get('/shipment/{id}/tracking',    [RealtimeController::class, 'shipmentTracking'])->name('shipment-tracking');
         Route::get('/live-feed',                 [RealtimeController::class, 'liveFeed'])->name('live-feed');
+        Route::get('/news-feed',                 [RealtimeController::class, 'newsFeed'])->name('news-feed');
     });
 });

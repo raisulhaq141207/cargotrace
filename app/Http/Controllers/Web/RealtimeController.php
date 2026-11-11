@@ -3,10 +3,11 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\News;
+use App\Models\Notification;
 use App\Models\Shipment;
 use App\Models\ShipmentException;
 use App\Models\TrackingEvent;
-use App\Models\Notification;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -109,6 +110,20 @@ class RealtimeController extends Controller
             ->whereNull('read_at')
             ->count();
 
+        // Live News & Advisories
+        $breakingNews = News::published()->where('is_breaking', true)->latest('published_at')->first();
+        $latestNews   = News::published()->latest('published_at')->take(4)->get()->map(fn($n) => [
+            'id'             => $n->id,
+            'title'          => $n->title,
+            'slug'           => $n->slug,
+            'category'       => $n->category,
+            'category_label' => $n->category_label,
+            'summary'        => $n->summary,
+            'is_breaking'    => (bool) $n->is_breaking,
+            'time_ago'       => $n->published_at->diffForHumans(),
+            'url'            => route('news.show', $n->slug),
+        ]);
+
         return response()->json([
             'timestamp'            => now()->toIso8601String(),
             'total_shipments'      => $totalShipments,
@@ -122,6 +137,14 @@ class RealtimeController extends Controller
             'recent_shipments'     => $recentShipments,
             'recent_exceptions'    => $recentExceptions,
             'unread_notifications' => $unreadNotifications,
+            'breaking_news'        => $breakingNews ? [
+                'id'      => $breakingNews->id,
+                'title'   => $breakingNews->title,
+                'slug'    => $breakingNews->slug,
+                'summary' => $breakingNews->summary,
+                'url'     => route('news.show', $breakingNews->slug),
+            ] : null,
+            'latest_news'          => $latestNews,
         ]);
     }
 
@@ -214,6 +237,48 @@ class RealtimeController extends Controller
         return response()->json([
             'timestamp' => now()->toIso8601String(),
             'events'    => $events,
+        ]);
+    }
+
+    /**
+     * GET /realtime/news-feed
+     * Returns the latest published maritime advisories for live auto-polling.
+     */
+    public function newsFeed(Request $request): JsonResponse
+    {
+        $query = News::published()->latest('published_at');
+
+        if ($request->filled('category')) {
+            $query->where('category', $request->input('category'));
+        }
+
+        $breaking = News::published()->where('is_breaking', true)->latest('published_at')->first();
+        $articles = $query->take(12)->get()->map(fn($item) => [
+            'id'             => $item->id,
+            'title'          => $item->title,
+            'slug'           => $item->slug,
+            'category'       => $item->category,
+            'category_label' => $item->category_label,
+            'summary'        => $item->summary,
+            'image_url'      => $item->image_url,
+            'is_breaking'    => (bool) $item->is_breaking,
+            'published_at'   => $item->published_at->format('M d, Y'),
+            'time_ago'       => $item->published_at->diffForHumans(),
+            'reading_time'   => max(1, ceil(str_word_count($item->content) / 200)),
+            'url'            => route('news.show', $item->slug),
+        ]);
+
+        return response()->json([
+            'timestamp'     => now()->toIso8601String(),
+            'count'         => $articles->count(),
+            'breaking_news' => $breaking ? [
+                'id'      => $breaking->id,
+                'title'   => $breaking->title,
+                'slug'    => $breaking->slug,
+                'summary' => $breaking->summary,
+                'url'     => route('news.show', $breaking->slug),
+            ] : null,
+            'articles'      => $articles,
         ]);
     }
 }

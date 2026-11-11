@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\News;
 use App\Models\Notification;
 use App\Models\Shipment;
 use App\Models\ShipmentException;
@@ -209,7 +210,81 @@ class SimulateShipmentActivity extends Command
             }
         }
 
+        // 4. Inject or rotate live maritime bulletins (~50% chance per tick)
+        if (rand(1, 100) <= 50) {
+            $this->injectLiveMaritimeAdvisory();
+        }
+
         $this->line('');
+    }
+
+    private function injectLiveMaritimeAdvisory(): void
+    {
+        $headlines = [
+            [
+                'title' => 'Flash Meteorological Alert: Wave Swells Surpass 3.4m in Indian Ocean Corridor',
+                'category' => 'WEATHER_ALERT',
+                'is_breaking' => true,
+                'summary' => 'Deep ocean wave radar reports heightened swell activity along trans-oceanic lanes between Colombo and Sunda Strait.',
+                'content' => "Automated maritime telemetry satellites have reported continuous wave swell surges between 3.2m and 3.6m across Indian Ocean routing sectors. Shippers and vessel operators are advised that container lashing checks must be reinforced. Vessel speeds have been adjusted automatically in CargoTrace routing matrix.",
+                'image_url' => 'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=800&auto=format&fit=crop&q=60',
+            ],
+            [
+                'title' => 'Suez Canal Convoy Update: Northbound Transit Moving at Normal Velocity',
+                'category' => 'PORT_ADVISORY',
+                'is_breaking' => false,
+                'summary' => 'Convoy departure slots confirmed; Great Bitter Lake waiting queues cleared with 0 backlog reported.',
+                'content' => "The Suez Canal Authority confirms that today's northbound convoy completed its scheduled transit with zero navigational delays. Dredging operations in the southern sector have concluded ahead of timetable.",
+                'image_url' => 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&auto=format&fit=crop&q=60',
+            ],
+            [
+                'title' => 'Port of Rotterdam: Automated Rail-Dock Synchronization Lowers Container Dwell Time',
+                'category' => 'PORT_ADVISORY',
+                'is_breaking' => false,
+                'summary' => 'Maasvlakte intermodal rail shuttle capacity expanded; container transfer times improve by 22% this shift.',
+                'content' => "European multimodal logistics operators report accelerated dwell clearance at Rotterdam's automated container terminal. Direct feeder connections to Rhine-Alpine corridor are fully operational.",
+                'image_url' => 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?w=800&auto=format&fit=crop&q=60',
+            ],
+            [
+                'title' => 'Emergency Navigational Warning: Fog & Restricted Visibility in Strait of Malacca',
+                'category' => 'WEATHER_ALERT',
+                'is_breaking' => true,
+                'summary' => 'Heavy atmospheric haze and rain squalls reduce visibility to under 1.5 nautical miles near One Fathom Bank.',
+                'content' => "Vessel Traffic Information System (VTIS) East has instructed all container carriers to sound fog signals and post extra bridge lookouts when navigating the Singapore and Malacca Straits.",
+                'image_url' => 'https://images.unsplash.com/photo-1518241353330-0f7941c2d9b5?w=800&auto=format&fit=crop&q=60',
+            ],
+            [
+                'title' => 'Customs Green Channel Clearance Activated at Tanjung Priok Port',
+                'category' => 'REGULATORY',
+                'is_breaking' => false,
+                'summary' => 'Electronic manifest validation pre-clears 94% of outbound container manifests, mitigating gate bottlenecks.',
+                'content' => "Indonesia Port Authority has rolled out continuous automated manifest verification, expediting containerized export processing through Jakarta's primary maritime gateway.",
+                'image_url' => 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&auto=format&fit=crop&q=60',
+            ],
+        ];
+
+        $item = $headlines[array_rand($headlines)];
+
+        // If an article with this exact title already exists, touch its published_at to make it live
+        $existing = News::where('title', $item['title'])->first();
+        if ($existing) {
+            $existing->published_at = now();
+            $existing->is_breaking  = $item['is_breaking'];
+            $existing->save();
+            $this->line("  📢  <fg=cyan>LIVE NEWS REFRESH:</> {$existing->title}");
+        } else {
+            News::create([
+                'title'        => $item['title'],
+                'category'     => $item['category'],
+                'summary'      => $item['summary'],
+                'content'      => $item['content'],
+                'image_url'    => $item['image_url'],
+                'is_breaking'  => $item['is_breaking'],
+                'is_published' => true,
+                'published_at' => now(),
+            ]);
+            $this->line("  📢  <fg=green>NEW LIVE BROADCAST:</> {$item['title']}");
+        }
     }
 
     private function randomDescription(string $status): string
