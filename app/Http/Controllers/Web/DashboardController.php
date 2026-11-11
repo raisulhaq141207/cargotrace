@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Carrier;
+use App\Models\News;
 use App\Models\Shipment;
 use App\Models\ShipmentException;
 use App\Models\TrackingEvent;
@@ -118,6 +119,10 @@ class DashboardController extends Controller
             ->take(8)
             ->get();
 
+        // Latest Breaking News & Maritime Advisories
+        $breakingNews = News::published()->where('is_breaking', true)->latest('published_at')->first();
+        $latestNews   = News::published()->latest('published_at')->take(4)->get();
+
         return view('dashboard.index', compact(
             'totalShipments',
             'inTransitCount',
@@ -127,7 +132,9 @@ class DashboardController extends Controller
             'delayRate',
             'carrierChartData',
             'mapShipments',
-            'recentShipments'
+            'recentShipments',
+            'breakingNews',
+            'latestNews'
         ));
     }
 

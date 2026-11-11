@@ -209,7 +209,16 @@ CargoTrace includes a native **Real-Time Polling & Activity Stream Engine** desi
 
 ---
 
-## 5. Map & External Weather API Integration
+### 5. Maritime News & Port Advisories Bulletin
+CargoTrace incorporates an integrated **Maritime Operational Intelligence & Advisory System**:
+- **Topic Categorization**: Port Advisories, Severe Weather Alerts, IMO & Environmental Regulations, Carrier Surcharges (BAF/LSF), and Trade Lane Intelligence.
+- **Breaking Alert Ticker**: Dynamic banner highlighting urgent navigational advisories across the Operations Dashboard.
+- **Role-Based Publishing**: Logistics Operators and Administrators can draft and broadcast advisories directly via web UI.
+- **Search & Filter**: Real-time multi-category search and slug-based routing for bookmarking and distribution.
+
+---
+
+## 6. Map & External Weather API Integration
 
 ### Geospatial Mapping (Leaflet.js + OpenStreetMap)
 - Rendered on the shipment detail page (`/shipments/{id}`).
@@ -236,6 +245,7 @@ CargoTrace includes a native **Real-Time Polling & Activity Stream Engine** desi
 | **Delete Shipment** | :white_check_mark: Yes | :white_check_mark: Non-delivered only | :x: No (403 Forbidden) |
 | **Record Tracking Checkpoint**| :white_check_mark: Yes | :white_check_mark: Yes | :x: No (403 Forbidden) |
 | **Log / Resolve Exceptions** | :white_check_mark: Yes | :white_check_mark: Yes | :x: Read-only relevant alerts |
+| **Maritime News & Advisories**| :white_check_mark: Full Publish/Delete | :white_check_mark: Publish / View | :white_check_mark: View Only |
 | **Manage Carriers & Hubs** | :white_check_mark: Full CRUD | :white_check_mark: View Only | :white_check_mark: View Only |
 | **Security Audit Trail** | :white_check_mark: Full Inspection | :x: No (403 Forbidden) | :x: No (403 Forbidden) |
 

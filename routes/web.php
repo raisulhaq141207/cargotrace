@@ -6,6 +6,7 @@ use App\Http\Controllers\Web\CarrierController;
 use App\Http\Controllers\Web\DashboardController;
 use App\Http\Controllers\Web\ExceptionController;
 use App\Http\Controllers\Web\LocationController;
+use App\Http\Controllers\Web\NewsController;
 use App\Http\Controllers\Web\NotificationController;
 use App\Http\Controllers\Web\RealtimeController;
 use App\Http\Controllers\Web\ReportController;
@@ -53,6 +54,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/tracking', [TrackingController::class, 'map'])->name('tracking.index');
     Route::get('/exceptions', [ExceptionController::class, 'index'])->name('exceptions.index');
     Route::get('/reports', [ReportController::class, 'index'])->name('reports.index');
+
+    // Maritime News & Port Advisories
+    Route::get('/news', [NewsController::class, 'index'])->name('news.index');
+    Route::get('/news/create', [NewsController::class, 'create'])->name('news.create');
+    Route::post('/news', [NewsController::class, 'store'])->name('news.store');
+    Route::get('/news/{slug}', [NewsController::class, 'show'])->name('news.show');
+    Route::delete('/news/{news}', [NewsController::class, 'destroy'])->name('news.destroy')->middleware('role:admin');
 
     // Tracking Events
     Route::post('/shipments/{shipment}/tracking', [TrackingController::class, 'store'])->name('shipments.tracking.store');

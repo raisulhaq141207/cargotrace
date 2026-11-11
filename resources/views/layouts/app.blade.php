@@ -196,6 +196,13 @@
                     <span>Reports</span>
                 </a>
 
+                <!-- Maritime News -->
+                <a href="{{ route('news.index') }}"
+                    class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition {{ request()->routeIs('news.*') ? 'bg-[#13354a] text-sky-400 shadow-sm' : 'text-slate-400 hover:bg-slate-800/60 hover:text-white' }}">
+                    <i class="fa-solid fa-newspaper text-sm w-4 text-center {{ request()->routeIs('news.*') ? 'text-sky-400' : 'text-slate-400' }}"></i>
+                    <span>Maritime News</span>
+                </a>
+
                 @if(auth()->user()->isAdmin())
                 <!-- Audit Logs (Admin) -->
                 <a href="{{ route('audit-logs.index') }}"

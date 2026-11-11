@@ -564,5 +564,8 @@ class DatabaseSeeder extends Seeder
             'user_agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
             'created_at' => Carbon::now()->subDays(4),
         ]);
+
+        // 7. Seed Maritime News & Bulletins
+        $this->call(NewsSeeder::class);
     }
 }

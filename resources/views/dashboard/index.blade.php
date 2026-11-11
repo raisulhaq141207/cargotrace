@@ -6,6 +6,22 @@
 @section('content')
 <div class="space-y-5">
 
+    @if(isset($breakingNews) && $breakingNews)
+    <!-- Breaking Maritime Advisory Banner -->
+    <div class="bg-gradient-to-r from-slate-900 to-[#0b192c] border border-slate-800 text-white px-4 py-2.5 rounded-2xl flex items-center justify-between text-xs shadow-sm">
+        <div class="flex items-center gap-2.5 min-w-0">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase bg-rose-500/20 text-rose-400 border border-rose-500/30 shrink-0 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping"></span> Advisory
+            </span>
+            <span class="font-bold text-slate-200 truncate">{{ $breakingNews->title }}</span>
+            <span class="text-slate-400 hidden sm:inline truncate">— {{ $breakingNews->summary }}</span>
+        </div>
+        <a href="{{ route('news.show', $breakingNews->slug) }}" class="text-sky-400 hover:text-sky-300 font-semibold shrink-0 ml-3 flex items-center gap-1">
+            <span>Read</span> &rarr;
+        </a>
+    </div>
+    @endif
+
     <!-- 1. Top Row: 5 Summary KPI Metric Cards (Matches Mockup Exactly) -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         
@@ -297,6 +313,48 @@
                     @endforelse
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- 4. Maritime News & Port Advisories Widget -->
+    <div class="bg-white rounded-2xl border border-slate-200/80 shadow-sm p-5">
+        <div class="flex items-center justify-between mb-4">
+            <div>
+                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <span>Maritime &amp; Port Advisories</span>
+                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800">Live Intel</span>
+                </h3>
+                <p class="text-xs text-slate-400">Critical trade lane updates, meteorological alerts, and terminal notices</p>
+            </div>
+            <a href="{{ route('news.index') }}" class="text-xs font-bold text-sky-600 hover:text-sky-700 flex items-center gap-1">
+                <span>View All Advisories</span>
+                <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            @forelse($latestNews ?? [] as $art)
+            <a href="{{ route('news.show', $art->slug) }}" class="p-3.5 rounded-xl border border-slate-100 bg-slate-50/50 hover:bg-white hover:border-slate-300 transition flex flex-col justify-between group">
+                <div>
+                    <div class="flex items-center justify-between text-[10px] text-slate-400 mb-1.5">
+                        <span class="font-bold text-sky-600 uppercase">{{ $art->category_label }}</span>
+                        <span>{{ $art->published_at->diffForHumans() }}</span>
+                    </div>
+                    <h4 class="font-bold text-xs text-slate-900 group-hover:text-sky-600 transition line-clamp-2 leading-snug">
+                        {{ $art->title }}
+                    </h4>
+                    <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                        {{ $art->summary }}
+                    </p>
+                </div>
+                <div class="mt-3 pt-2 border-t border-slate-200/60 text-[10px] font-bold text-sky-600 flex items-center justify-between">
+                    <span>Read Advisory</span>
+                    <i class="fa-solid fa-arrow-right text-[9px] group-hover:translate-x-0.5 transition"></i>
+                </div>
+            </a>
+            @empty
+            <div class="col-span-4 py-4 text-center text-xs text-slate-400">No advisories logged.</div>
+            @endforelse
         </div>
     </div>
 
